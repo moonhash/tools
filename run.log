@@ -1,0 +1,5 @@
+time="2023-05-18T11:15:45+08:00" level=info msg=22222222222 func=main.feiDuDu file="D:/work/item/go/src/github.com/moonhash/tools/main.go:172"
+time="2023-05-18T11:15:45+08:00" level=info msg=22222222222 func=main.feiDuDu file="D:/work/item/go/src/github.com/moonhash/tools/main.go:172"
+time="2023-05-18T11:15:45+08:00" level=info msg=22222222222 func=main.feiDuDu file="D:/work/item/go/src/github.com/moonhash/tools/main.go:172"
+time="2023-05-18T11:46:53+08:00" level=info msg="D:\\work\\item\\go\\src\\github.com\\moonhash\\tools" func=main.test file="D:/work/item/go/src/github.com/moonhash/tools/main.go:226"
+time="2023-05-18T11:46:53+08:00" level=info msg="D:\\work\\item\\go\\src\\github.com\\moonhash\\tools\\bin\\go_build_github_com_moonhash_tools.exe" func=main.test file="D:/work/item/go/src/github.com/moonhash/tools/main.go:228"
