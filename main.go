@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/nguyenthenguyen/docx"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
@@ -24,7 +23,7 @@ func main() {
 		MaxAge:     15, //days
 		LocalTime:  true,
 	})
-	//f, err := excelize.OpenFile("./填写信息汇总.xlsx")
+	//f, err := excelize.OpenFile("./填写信息汇总3.xlsx")
 	//if err != nil {
 	//	fmt.Println(err)
 	//	return
@@ -125,14 +124,15 @@ func main() {
 	//	}
 	//	return
 	//}
-	feiDuDu(dir)
+	one(dir)
+	two(dir)
 	// test()
 }
 
-func feiDuDu(dir string) {
-	f, err := excelize.OpenFile("./填写信息汇总.xlsx")
+func one(dir string) {
+	f, err := excelize.OpenFile(dir + "/填写信息汇总.xlsx")
 	if err != nil {
-		logrus.Println(err)
+		// logrus.Println(err)
 		return
 	}
 	defer func() {
@@ -143,7 +143,7 @@ func feiDuDu(dir string) {
 	}()
 	sheetName := "Sheet1"
 	templateName := dir + "/template.docx"
-	fmt.Println(templateName)
+	// fmt.Println(templateName)
 	rows, err := f.GetRows(sheetName)
 	if err != nil {
 		logrus.Printf("无法打开%v表格", sheetName)
@@ -198,6 +198,93 @@ func feiDuDu(dir string) {
 			"{key-with-day}":       v[fields["日"]],
 			"{key-with-month}":     v[fields["月"]],
 			"{key-with-year}":      v[fields["年"]],
+		}
+		docxNew := r.Editable()
+		for k, s := range replaces {
+			err = docxNew.Replace(k, s, -1)
+			if err != nil {
+				logrus.Printf("docx更换失败, err: %v", err.Error())
+				return
+			}
+		}
+		err = docxNew.ReplaceImage("word/media/image1.png", pictureName)
+		if err != nil {
+			logrus.Printf("docx更换图片失败, err: %v", err.Error())
+			return
+		}
+		err = docxNew.WriteToFile(strings.TrimSpace(v[fields["文件命名"]]) + ".docx")
+		if err != nil {
+			logrus.Printf("docx保存为新文件失败, err: %v", err.Error())
+			return
+		}
+		os.Remove(pictureName)
+	}
+}
+
+func two(dir string) {
+	f, err := excelize.OpenFile(dir + "/填写信息汇总2.xlsx")
+	if err != nil {
+		// logrus.Println(err)
+		return
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logrus.Println(err)
+		}
+	}()
+	sheetName := "Sheet1"
+	templateName := dir + "/template2.docx"
+	// fmt.Println(templateName)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		logrus.Printf("无法打开%v表格", sheetName)
+		return
+	}
+	if len(rows) <= 1 {
+		logrus.Printf("填写信息汇总xlsx无内容")
+		return
+	}
+	fields := make(map[string]int, 12)
+	// fmt.Println(rows)
+	for i, v := range rows[0] {
+		fields[strings.TrimSpace(v)] = i
+	}
+	r, err := docx.ReadDocxFile(templateName)
+	if err != nil {
+		logrus.Printf("docx打开模板文件失败, err: %v", err.Error())
+		return
+	}
+	defer r.Close()
+	for i, v := range rows {
+		if i == 0 {
+			continue
+		}
+		// replaceMap is a key-value map whereas the keys
+		// represent the placeholders without the delimiters
+		letterNo := string(byte(65 + fields["签名图片"]))
+		picture, err := f.GetPictures(sheetName, letterNo+strconv.Itoa(i+1))
+		if err != nil {
+			logrus.Printf("获取前面图片失败, err: %v", err.Error())
+			return
+		}
+		if len(picture) == 0 {
+			logrus.Printf("签名图片为空")
+			return
+		}
+		pictureName := v[fields["法人名字"]] + picture[0].Extension
+		err = os.WriteFile(pictureName, picture[0].File, 0755)
+		if err != nil {
+			logrus.Printf("保存签名图片失败, err: %v", err.Error())
+			return
+		}
+		replaces := map[string]string{
+			"{key-with-company}": v[fields["公司名"]],
+			"{key-with-nif}":     v[fields["税号"]],
+			"{key-with-addr}":    v[fields["公司地址"]],
+			"{key-with-day}":     v[fields["日"]],
+			"{key-with-month}":   v[fields["月"]],
+			"{key-with-year}":    v[fields["年"]],
 		}
 		docxNew := r.Editable()
 		for k, s := range replaces {
